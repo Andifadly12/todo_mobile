@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiException implements Exception {
-  const ApiException(this.message);
+  const ApiException(this.message, {this.statusCode});
+  final int? statusCode;
   final String message;
 }
 
@@ -13,21 +14,30 @@ class ApiClient {
   final String baseUrl;
   final http.Client client;
 
-  Future<Map<String, dynamic>> post(
-    String path,
-    Map<String, dynamic> body,
-  ) async {
+  String? accessToken;
+
+  Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) =>
+      request('POST', path, body);
+
+  Future<Map<String, dynamic>> request(
+    String method,
+    String path, [
+    Map<String, dynamic>? body,
+  ]) async {
     try {
-      final response = await client
-          .post(
-            Uri.parse('${baseUrl.replaceFirst(RegExp(r'/+$'), '')}/$path'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: jsonEncode(body),
-          )
-          .timeout(const Duration(seconds: 15));
+      final req = http.Request(
+        method,
+        Uri.parse('${baseUrl.replaceFirst(RegExp(r'/+$'), '')}/$path'),
+      );
+      req.headers.addAll({
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+      });
+      if (body != null) req.body = jsonEncode(body);
+      final response = await (() async => http.Response.fromStream(
+        await client.send(req),
+      ))().timeout(const Duration(seconds: 15));
       Map<String, dynamic> data = {};
       if (response.body.trim().isNotEmpty) {
         try {
@@ -46,11 +56,13 @@ class ApiClient {
       if (response.statusCode < 200 ||
           response.statusCode >= 300 ||
           data['success'] == false) {
-        final message = data['message'] ?? data['error'];
+        final rawMessage = data['message'] ?? data['error'];
+        final message = rawMessage is List ? rawMessage.join('\n') : rawMessage;
         throw ApiException(
           message is String && message.isNotEmpty
               ? message
               : 'Permintaan gagal (${response.statusCode}). Silakan coba lagi.',
+          statusCode: response.statusCode,
         );
       }
       return data;
