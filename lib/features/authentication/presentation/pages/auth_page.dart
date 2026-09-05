@@ -1,4 +1,4 @@
-import '../../../profile/presentation/profile_page.dart';
+import '../../../home/presentation/home_page.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -73,7 +73,7 @@ class _AuthFormState extends State<_AuthForm> {
     listener: (context, state) {
       if (state.status == AuthStatus.success && !_reset) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute<void>(builder: (_) => const ProfilePage()),
+          MaterialPageRoute<void>(builder: (_) => const HomePage()),
           (_) => false,
         );
         return;
