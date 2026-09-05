@@ -24,6 +24,19 @@ class ApiAuthRepository implements AuthRepository {
           'role': request.role,
         },
       });
+      final session = register
+          ? await _api.post('auth/login', {
+              'email': request.email,
+              'password': request.password,
+            })
+          : data;
+      final token = session['accessToken'];
+      if (token is! String || token.isEmpty) {
+        throw const AuthException(
+          'Token login tidak tersedia. Silakan login kembali.',
+        );
+      }
+      _api.accessToken = token;
       final message = data['message'];
       return message is String && message.isNotEmpty
           ? message
