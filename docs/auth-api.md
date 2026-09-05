@@ -30,5 +30,13 @@ Pesan string `message`/`error` ditampilkan di form. Timeout: 15 detik.
 
 Repository demo tidak lagi dipakai aplikasi. Endpoint reset password belum
 tersedia dan akan menampilkan pesan tersebut tanpa mengirim request.
-Integrasi ini mengirim form dan menampilkan hasil; token, persistensi sesi,
-dan navigasi setelah login belum diterapkan karena kontrak respons belum tersedia.
+Login membaca `accessToken` dan menyimpannya di memori ApiClient. Registrasi otomatis
+memanggil login untuk mendapatkan token, lalu membuka ProfilePage. Token dikirim
+sebagai Authorization: Bearer pada request berikutnya. Logout menghapus token.
+Sesi belum disimpan ke perangkat: membuka ulang aplikasi memerlukan login lagi.
+
+Profile menggunakan GET /profile/me, POST /profile, PATCH /profile/:id, dan
+DELETE /profile/:id. ID untuk perubahan adalah ID profile, bukan ID user.
+GET /profile/me mengembalikan {profile: {username, email, profile: {id, bio, phone}}};
+profile dalam akun bisa null. Bio dan phone dikirim sebagai string.
+Penghapusan membutuhkan konfirmasi di UI dan hanya menghapus profile.
