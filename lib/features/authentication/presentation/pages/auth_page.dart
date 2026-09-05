@@ -1,3 +1,5 @@
+import '../../../profile/presentation/profile_page.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -69,6 +71,13 @@ class _AuthFormState extends State<_AuthForm> {
   Widget build(BuildContext context) => BlocConsumer<AuthCubit, AuthState>(
     listenWhen: (previous, current) => previous.status != current.status,
     listener: (context, state) {
+      if (state.status == AuthStatus.success && !_reset) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute<void>(builder: (_) => const ProfilePage()),
+          (_) => false,
+        );
+        return;
+      }
       if (state.message != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
