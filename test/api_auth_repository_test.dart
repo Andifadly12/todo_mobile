@@ -13,6 +13,9 @@ void main() {
     final client = ApiClient(
       baseUrl: 'http://localhost:4000/',
       client: MockClient((request) async {
+        if (request.url.path == '/auth/login') {
+          return http.Response('{"accessToken":"test-token"}', 200);
+        }
         expect(request.url.toString(), 'http://localhost:4000/auth/register');
         expect(request.method, 'POST');
         expect(jsonDecode(request.body), {
