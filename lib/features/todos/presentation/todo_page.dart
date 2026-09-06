@@ -1,3 +1,5 @@
+import '../../ai/data/api_ai_repository.dart';
+import '../../ai/presentation/ai_prompt_sheet.dart';
 import '../../categories/data/api_category_repository.dart';
 
 import 'package:flutter/material.dart';
@@ -23,7 +25,7 @@ class TodoPage extends StatelessWidget {
 
 class _TodoView extends StatelessWidget {
   const _TodoView();
-  Future<void> edit(BuildContext context, {Todo? todo}) async {
+  Future<void> edit(BuildContext context, {Todo? todo, Todo? draft}) async {
     final cubit = context.read<TodoCubit>();
     await showModalBottomSheet<void>(
       context: context,
@@ -37,6 +39,7 @@ class _TodoView extends StatelessWidget {
           TodoEditor(
             cubit: cubit,
             todo: todo,
+            draft: draft,
             categories: ApiCategoryRepository(context.read<ApiClient>()),
           ),
           Positioned(
@@ -156,6 +159,31 @@ class _TodoView extends StatelessWidget {
                         color: Color(0xFFECD5BC),
                       ),
                     ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.auto_awesome),
+                    label: const Text('Bantu dengan AI'),
+                    onPressed: state.busy
+                        ? null
+                        : () async {
+                            final repository = ApiAiRepository(
+                              context.read<ApiClient>(),
+                            );
+                            final draft = await showModalBottomSheet<Todo>(
+                              context: context,
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              showDragHandle: true,
+                              builder: (_) =>
+                                  AiPromptSheet(repository: repository),
+                            );
+                            if (context.mounted && draft != null) {
+                              await edit(context, draft: draft);
+                            }
+                          },
                   ),
                 ),
                 const SizedBox(height: 24),
