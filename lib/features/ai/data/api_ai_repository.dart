@@ -6,6 +6,16 @@ class ApiAiRepository implements AiRepository {
   const ApiAiRepository(this.api);
   final ApiClient api;
   @override
+  Future<String> ask(String message) async {
+    final response = await api.post('ai/ask', {'message': message});
+    final answer = response['answer'];
+    if (answer is! String || answer.trim().isEmpty) {
+      throw const ApiException('Jawaban AI tidak valid. Silakan coba lagi.');
+    }
+    return answer;
+  }
+
+  @override
   Future<Todo> parseTodo(String text) async {
     final response = await api.post('ai/parse-todo', {'text': text});
     final data = response['draft'];
