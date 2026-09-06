@@ -37,6 +37,11 @@ class AppFooter extends StatelessWidget {
               label: 'Tugas',
             ),
             NavigationDestination(
+              icon: Icon(Icons.folder_outlined),
+              selectedIcon: Icon(Icons.folder),
+              label: 'Kategori',
+            ),
+            NavigationDestination(
               icon: Icon(Icons.person_outline),
               selectedIcon: Icon(Icons.person),
               label: 'Profile',
