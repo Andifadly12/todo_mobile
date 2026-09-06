@@ -1,3 +1,4 @@
+import '../../ai/presentation/ask_ai_page.dart';
 import '../../ai/data/api_ai_repository.dart';
 import '../../ai/presentation/ai_prompt_sheet.dart';
 import '../../categories/data/api_category_repository.dart';
@@ -161,11 +162,23 @@ class _TodoView extends StatelessWidget {
                     ],
                   ),
                 ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    label: const Text('Tanya AI'),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AskAiPage(),
+                      ),
+                    ),
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.auto_awesome),
-                    label: const Text('Bantu dengan AI'),
+                    label: const Text('Buat tugas dengan AI'),
                     onPressed: state.busy
                         ? null
                         : () async {
