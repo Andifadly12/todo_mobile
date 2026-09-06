@@ -8,6 +8,34 @@ import 'package:todo_mobile/features/ai/data/api_ai_repository.dart';
 import 'package:todo_mobile/features/ai/presentation/ai_cubit.dart';
 
 void main() {
+  test('Ask sends message and reads answer with JWT', () async {
+    final api = ApiClient(
+      baseUrl: 'http://localhost:4000',
+      client: MockClient((r) async {
+        expect(r.url.path, '/ai/ask');
+        expect(r.headers['Authorization'], 'Bearer token');
+        expect(jsonDecode(r.body), {'message': 'Bagaimana mulai?'});
+        return http.Response('{"answer":"Mulai dari satu tugas kecil."}', 200);
+      }),
+    )..accessToken = 'token';
+    addTearDown(api.close);
+    expect(
+      await ApiAiRepository(api).ask('Bagaimana mulai?'),
+      'Mulai dari satu tugas kecil.',
+    );
+  });
+  test('Ask rejects empty server answer', () async {
+    final api = ApiClient(
+      baseUrl: 'http://localhost:4000',
+      client: MockClient((_) async => http.Response('{"answer":""}', 200)),
+    );
+    addTearDown(api.close);
+    await expectLater(
+      ApiAiRepository(api).ask('Halo'),
+      throwsA(isA<ApiException>()),
+    );
+  });
+
   test('AI sends JWT and maps draft without saving a Todo', () async {
     var requests = 0;
     final api = ApiClient(
