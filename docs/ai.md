@@ -11,7 +11,11 @@ Fitur berada di lib/features/ai (domain, data, presentation Cubit). Kredensial
 provider AI hanya berada di backend. Batas waktu mengikuti ApiClient (15 detik).
 Kegagalan jaringan/server, draft tidak valid, dan input kosong ditangani di UI.
 
-Pengujian mobile menggunakan mock HTTP untuk JWT, pemetaan draft, tidak melakukan
-penyimpanan otomatis, dan penolakan respons invalid. Saat integrasi, endpoint lokal
-masih mengembalikan 404; proses backend perlu menjalankan modul AI terbaru sebelum
-pengujian menyeluruh dengan provider dapat dilakukan.
+Tanya AI menggunakan POST /ai/ask dengan {message}, maksimal 4.000 karakter,
+dan membaca {answer: string}. Setiap pertanyaan berdiri sendiri; tidak ada riwayat
+percakapan yang dikirim. Jawaban dapat diseleksi/disalin di halaman Tanya AI.
+
+Pengujian mobile memakai mock HTTP untuk JWT, pemetaan draft/jawaban, tidak menyimpan
+otomatis, dan respons invalid. Verifikasi langsung /ai/ask mengembalikan 503:
+OPENAI_API_KEY belum dikonfigurasi. Atur key hanya pada backend dan mulai ulang
+server sesuai konfigurasi backend; jangan menaruh key provider di mobile.
