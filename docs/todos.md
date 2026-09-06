@@ -15,8 +15,9 @@ Status: TODO, IN_PROGRESS, COMPLETED, CANCELLED. Prioritas: LOW, MEDIUM, HIGH.
 Judul wajib, maksimal 120 karakter. Tanggal lokal dikirim sebagai ISO 8601 UTC;
 tanggal yang dikosongkan dikirim null. completedAt dikelola backend ketika status berubah.
 Reminder disimpan ke backend; penjadwalan notifikasi perangkat belum diterapkan.
-categoryId dibaca dan dipertahankan saat edit, tetapi pemilih kategori belum tersedia
-karena endpoint Category belum diberikan.
+Pemilih kategori memuat GET /categories setiap form dibuka. categoryId dikirim saat
+simpan; pilihan Tanpa kategori mengirim null. Jika daftar gagal dimuat, kategori
+saat ini dipertahankan dan pengguna dapat mencoba memuat ulang.
 
 Validasi: flutter analyze, flutter test; CRUD backend memakai akun QA; pemeriksaan
 layout dan pembuatan tugas melalui emulator Android.
