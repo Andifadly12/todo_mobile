@@ -1,3 +1,5 @@
+import '../../categories/data/api_category_repository.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -32,7 +34,11 @@ class _TodoView extends StatelessWidget {
       useSafeArea: true,
       builder: (context) => Stack(
         children: [
-          TodoEditor(cubit: cubit, todo: todo),
+          TodoEditor(
+            cubit: cubit,
+            todo: todo,
+            categories: ApiCategoryRepository(context.read<ApiClient>()),
+          ),
           Positioned(
             right: 12,
             top: 0,
