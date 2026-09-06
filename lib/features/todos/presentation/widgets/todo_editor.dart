@@ -1,3 +1,5 @@
+import '../../../categories/domain/category_repository.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/atoms/primary_button.dart';
@@ -15,9 +17,15 @@ String dateLabel(DateTime date) =>
     '${date.day}/${date.month}/${date.year} • ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
 
 class TodoEditor extends StatefulWidget {
-  const TodoEditor({super.key, required this.cubit, this.todo});
+  const TodoEditor({
+    super.key,
+    required this.cubit,
+    this.todo,
+    this.categories,
+  });
   final TodoCubit cubit;
   final Todo? todo;
+  final CategoryRepository? categories;
   @override
   State<TodoEditor> createState() => _TodoEditorState();
 }
@@ -32,6 +40,34 @@ class _TodoEditorState extends State<TodoEditor> {
   late String priority = widget.todo?.priority ?? 'MEDIUM';
   late DateTime? due = widget.todo?.dueAt;
   late DateTime? reminder = widget.todo?.reminderAt;
+  late String? categoryId = widget.todo?.categoryId;
+  List<Category> categories = [];
+  bool categoriesLoading = false;
+  String? categoryError;
+  @override
+  void initState() {
+    super.initState();
+    loadCategories();
+  }
+
+  Future<void> loadCategories() async {
+    if (widget.categories == null) return;
+    setState(() {
+      categoriesLoading = true;
+      categoryError = null;
+    });
+    try {
+      final values = await widget.categories!.list();
+      if (mounted) setState(() => categories = values);
+    } catch (_) {
+      if (mounted) {
+        setState(() => categoryError = 'Kategori belum dapat dimuat.');
+      }
+    } finally {
+      if (mounted) setState(() => categoriesLoading = false);
+    }
+  }
+
   bool saving = false;
   String? error;
   @override
@@ -145,6 +181,39 @@ class _TodoEditorState extends State<TodoEditor> {
                 onChanged: saving ? null : (v) => setState(() => priority = v!),
               ),
               const SizedBox(height: 12),
+              if (widget.categories != null) ...[
+                const SizedBox(height: 16),
+                if (categoriesLoading) const LinearProgressIndicator(),
+                if (categoryError != null)
+                  TextButton(
+                    onPressed: loadCategories,
+                    child: Text('$categoryError Coba lagi'),
+                  ),
+                DropdownButtonFormField<String>(
+                  key: ValueKey('${categories.length}:$categoryId'),
+                  initialValue: categoryId ?? '',
+                  decoration: const InputDecoration(labelText: 'Kategori'),
+                  items: [
+                    const DropdownMenuItem(
+                      value: '',
+                      child: Text('Tanpa kategori'),
+                    ),
+                    if (categoryId != null &&
+                        !categories.any((e) => e.id == categoryId))
+                      DropdownMenuItem(
+                        value: categoryId,
+                        child: const Text('Kategori saat ini'),
+                      ),
+                    ...categories.map(
+                      (e) => DropdownMenuItem(value: e.id, child: Text(e.name)),
+                    ),
+                  ],
+                  onChanged:
+                      saving || categoriesLoading || categoryError != null
+                      ? null
+                      : (v) => setState(() => categoryId = v == '' ? null : v),
+                ),
+              ],
               for (final isDue in [true, false])
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -205,6 +274,7 @@ class _TodoEditorState extends State<TodoEditor> {
                   });
                   final ok = await widget.cubit.save({
                     'title': title.text.trim(),
+                    'categoryId': categoryId,
                     'description': description.text.trim(),
                     'status': status,
                     'priority': priority,
