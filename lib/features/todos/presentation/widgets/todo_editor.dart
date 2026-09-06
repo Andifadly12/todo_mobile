@@ -21,10 +21,12 @@ class TodoEditor extends StatefulWidget {
     super.key,
     required this.cubit,
     this.todo,
+    this.draft,
     this.categories,
   });
   final TodoCubit cubit;
   final Todo? todo;
+  final Todo? draft;
   final CategoryRepository? categories;
   @override
   State<TodoEditor> createState() => _TodoEditorState();
@@ -32,14 +34,16 @@ class TodoEditor extends StatefulWidget {
 
 class _TodoEditorState extends State<TodoEditor> {
   final form = GlobalKey<FormState>();
-  late final title = TextEditingController(text: widget.todo?.title);
-  late final description = TextEditingController(
-    text: widget.todo?.description,
+  late final title = TextEditingController(
+    text: (widget.todo ?? widget.draft)?.title,
   );
-  late String status = widget.todo?.status ?? 'TODO';
-  late String priority = widget.todo?.priority ?? 'MEDIUM';
-  late DateTime? due = widget.todo?.dueAt;
-  late DateTime? reminder = widget.todo?.reminderAt;
+  late final description = TextEditingController(
+    text: (widget.todo ?? widget.draft)?.description,
+  );
+  late String status = (widget.todo ?? widget.draft)?.status ?? 'TODO';
+  late String priority = (widget.todo ?? widget.draft)?.priority ?? 'MEDIUM';
+  late DateTime? due = (widget.todo ?? widget.draft)?.dueAt;
+  late DateTime? reminder = (widget.todo ?? widget.draft)?.reminderAt;
   late String? categoryId = widget.todo?.categoryId;
   List<Category> categories = [];
   bool categoriesLoading = false;
@@ -275,6 +279,10 @@ class _TodoEditorState extends State<TodoEditor> {
                   final ok = await widget.cubit.save({
                     'title': title.text.trim(),
                     'categoryId': categoryId,
+                    if (widget.draft != null && status == 'COMPLETED')
+                      'completedAt': widget.draft!.completedAt
+                          ?.toUtc()
+                          .toIso8601String(),
                     'description': description.text.trim(),
                     'status': status,
                     'priority': priority,
