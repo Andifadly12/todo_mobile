@@ -8,13 +8,15 @@ class ApiAuthRepository implements AuthRepository {
 
   @override
   Future<String> submit(AuthRequest request) async {
-    if (request.action == AuthAction.resetPassword) {
-      throw const AuthException(
-        'Lupa password belum tersedia. Endpoint reset belum dikonfigurasi.',
-      );
-    }
     final register = request.action == AuthAction.register;
     try {
+      if (request.action == AuthAction.resetPassword) {
+        final result = await _api.post('auth/forgot-password', {
+          'email': request.email,
+        });
+        return result['message'] as String? ??
+            'Instruksi reset password telah dibuat.';
+      }
       final data = await _api.post(register ? 'auth/register' : 'auth/login', {
         'email': request.email,
         'password': request.password,
@@ -36,7 +38,13 @@ class ApiAuthRepository implements AuthRepository {
           'Token login tidak tersedia. Silakan login kembali.',
         );
       }
-      _api.accessToken = token;
+      final refresh = session['refreshToken'];
+      if (refresh is! String || refresh.isEmpty) {
+        throw const AuthException(
+          'Refresh token tidak tersedia. Silakan login kembali.',
+        );
+      }
+      _api.setSession(token, refresh);
       final message = data['message'];
       return message is String && message.isNotEmpty
           ? message
