@@ -1,3 +1,5 @@
+import 'widgets/todo_filter_sheet.dart';
+import '../../notifications/presentation/notification_page.dart';
 import '../../ai/presentation/ask_ai_page.dart';
 import '../../ai/data/api_ai_repository.dart';
 import '../../ai/presentation/ai_prompt_sheet.dart';
@@ -99,6 +101,15 @@ class _TodoView extends StatelessWidget {
                     ),
                     const Spacer(),
                     IconButton(
+                      tooltip: 'Notifikasi',
+                      icon: const Icon(Icons.notifications_none),
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const NotificationPage(),
+                        ),
+                      ),
+                    ),
+                    IconButton(
                       tooltip: 'Muat ulang tugas',
                       onPressed: state.busy
                           ? null
@@ -161,6 +172,31 @@ class _TodoView extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                TextButton.icon(
+                  icon: const Icon(Icons.tune),
+                  label: Text(
+                    cubit.search != null ||
+                            cubit.priority != null ||
+                            cubit.categoryId != null ||
+                            cubit.completed != null
+                        ? 'Filter tambahan aktif'
+                        : 'Cari & filter',
+                  ),
+                  onPressed: state.busy
+                      ? null
+                      : () => showModalBottomSheet<void>(
+                          context: context,
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          showDragHandle: true,
+                          builder: (_) => TodoFilterSheet(
+                            cubit: cubit,
+                            categories: ApiCategoryRepository(
+                              context.read<ApiClient>(),
+                            ),
+                          ),
+                        ),
                 ),
                 Align(
                   alignment: Alignment.centerLeft,
