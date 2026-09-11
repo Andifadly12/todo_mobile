@@ -1,3 +1,5 @@
+import '../../authentication/presentation/pages/account_page.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -26,6 +28,31 @@ class _ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<_ProfileView> {
+  bool signingOut = false;
+  Future<void> logout(bool all) async {
+    setState(() => signingOut = true);
+    try {
+      await context.read<ApiClient>().logout(all: all);
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(builder: (_) => const AuthPage()),
+        (_) => false,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e is ApiException ? e.message : 'Logout gagal. Coba lagi.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => signingOut = false);
+    }
+  }
+
   final bio = TextEditingController();
   final phone = TextEditingController();
   @override
@@ -54,17 +81,43 @@ class _ProfileViewState extends State<_ProfileView> {
         title: const Text('Profile saya'),
         actions: [
           IconButton(
+            tooltip: 'Verifikasi email',
+            icon: const Icon(Icons.mark_email_read_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const AccountPage(verification: true),
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Keluar semua perangkat',
+            icon: const Icon(Icons.devices),
+            onPressed: signingOut
+                ? null
+                : () async {
+                    final yes = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Keluar dari semua perangkat?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Batal'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('Keluar'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (yes == true && mounted) await logout(true);
+                  },
+          ),
+          IconButton(
             tooltip: 'Keluar',
             icon: const Icon(Icons.logout),
-            onPressed: state.loading
-                ? null
-                : () {
-                    context.read<ApiClient>().accessToken = null;
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute<void>(builder: (_) => const AuthPage()),
-                      (_) => false,
-                    );
-                  },
+            onPressed: state.loading || signingOut ? null : () => logout(false),
           ),
         ],
       ),
