@@ -74,6 +74,7 @@ class _TodoView extends StatelessWidget {
       final cubit = context.read<TodoCubit>();
       return Scaffold(
         floatingActionButton: FloatingActionButton.extended(
+          heroTag: 'add-todo',
           onPressed: state.busy ? null : () => edit(context),
           backgroundColor: AppColors.brown,
           foregroundColor: Colors.white,

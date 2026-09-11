@@ -42,6 +42,7 @@ class _CategoryView extends StatelessWidget {
       final cubit = context.read<CategoryCubit>();
       return Scaffold(
         floatingActionButton: FloatingActionButton.extended(
+          heroTag: 'add-category',
           onPressed: state.busy ? null : () => edit(context),
           backgroundColor: AppColors.brown,
           foregroundColor: Colors.white,
