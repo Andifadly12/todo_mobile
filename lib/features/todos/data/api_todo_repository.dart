@@ -18,9 +18,24 @@ class ApiTodoRepository implements TodoRepository {
     categoryId: json['categoryId'] as String?,
   );
   @override
-  Future<TodoPageData> list({required int page, String? status}) async {
+  Future<TodoPageData> list({
+    required int page,
+    String? status,
+    String? search,
+    String? priority,
+    String? categoryId,
+    bool? completed,
+  }) async {
     final query = Uri(
-      queryParameters: {'page': '$page', 'limit': '10', 'status': ?status},
+      queryParameters: {
+        'page': '$page',
+        'limit': '10',
+        'status': ?status,
+        'search': ?search,
+        'priority': ?priority,
+        'categoryId': ?categoryId,
+        'completed': ?completed?.toString(),
+      },
     ).query;
     final data = await api.request('GET', 'todos?$query');
     final rows = data['data'] as List;
