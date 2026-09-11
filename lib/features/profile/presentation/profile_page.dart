@@ -1,3 +1,4 @@
+import 'account_security_page.dart';
 import '../../authentication/presentation/pages/account_page.dart';
 
 import 'package:flutter/material.dart';
@@ -80,6 +81,18 @@ class _ProfileViewState extends State<_ProfileView> {
       appBar: AppBar(
         title: const Text('Profile saya'),
         actions: [
+          PopupMenuButton<bool>(
+            tooltip: 'Keamanan akun',
+            onSelected: (deleting) => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => AccountSecurityPage(deleting: deleting),
+              ),
+            ),
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: false, child: Text('Ubah password')),
+              PopupMenuItem(value: true, child: Text('Hapus akun')),
+            ],
+          ),
           IconButton(
             tooltip: 'Verifikasi email',
             icon: const Icon(Icons.mark_email_read_outlined),
