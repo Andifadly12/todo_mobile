@@ -48,7 +48,7 @@ void main() {
     await tester.ensureVisible(find.text('Lupa password?'));
     await tester.tap(find.text('Lupa password?'));
     await tester.pumpAndSettle();
-    expect(find.text('Kirim tautan reset'), findsOneWidget);
+    expect(find.text('Minta instruksi'), findsOneWidget);
     expect(find.byType(TextFormField), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
