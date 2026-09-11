@@ -15,6 +15,66 @@ class ApiClient {
   final http.Client client;
 
   String? accessToken;
+  String? refreshToken;
+  Future<void>? _refreshing;
+  int _sessionVersion = 0;
+
+  void setSession(String access, String refresh) {
+    _sessionVersion++;
+    accessToken = access;
+    refreshToken = refresh;
+  }
+
+  void clearSession() {
+    _sessionVersion++;
+    accessToken = null;
+    refreshToken = null;
+  }
+
+  Future<void> logout({bool all = false}) async {
+    if (all) {
+      await post('auth/logout-all', {});
+    } else if (refreshToken != null) {
+      await post('auth/logout', {'refreshToken': refreshToken});
+    }
+    clearSession();
+  }
+
+  Future<void> _refresh() async {
+    final current = _refreshing;
+    if (current != null) return current;
+    final future = _rotate();
+    _refreshing = future;
+    try {
+      await future;
+    } finally {
+      if (identical(_refreshing, future)) _refreshing = null;
+    }
+  }
+
+  Future<void> _rotate() async {
+    final version = _sessionVersion;
+    try {
+      final data = await post('auth/refresh', {'refreshToken': refreshToken});
+      if (version != _sessionVersion) {
+        throw const ApiException('Sesi telah berubah. Silakan login kembali.');
+      }
+      final access = data['accessToken'], refresh = data['refreshToken'];
+      if (access is! String ||
+          access.isEmpty ||
+          refresh is! String ||
+          refresh.isEmpty) {
+        throw const ApiException('Respons pembaruan sesi tidak valid.');
+      }
+      setSession(access, refresh);
+    } on ApiException catch (e) {
+      if (version == _sessionVersion &&
+          (e.statusCode == 401 || e.statusCode == 403)) {
+        clearSession();
+      }
+      rethrow;
+    }
+  }
 
   Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) =>
       request('POST', path, body);
@@ -43,7 +103,9 @@ class ApiClient {
     String method,
     String path, [
     Map<String, dynamic>? body,
+    bool retried = false,
   ]) async {
+    final sentToken = accessToken;
     try {
       final req = http.Request(
         method,
@@ -58,6 +120,19 @@ class ApiClient {
       final response = await (() async => http.Response.fromStream(
         await client.send(req),
       ))().timeout(const Duration(seconds: 15));
+      if (response.statusCode == 401 &&
+          !path.startsWith('auth/') &&
+          !retried &&
+          refreshToken != null) {
+        if (sentToken == accessToken) await _refresh();
+        if (accessToken == null) {
+          throw const ApiException(
+            'Sesi berakhir. Silakan login kembali.',
+            statusCode: 401,
+          );
+        }
+        return await _request(method, path, body, true);
+      }
       dynamic data = <String, dynamic>{};
       if (response.body.trim().isNotEmpty) {
         try {
