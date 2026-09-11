@@ -1,3 +1,4 @@
+import 'account_page.dart';
 import '../../../home/presentation/home_page.dart';
 
 import 'package:flutter/material.dart';
@@ -290,7 +291,11 @@ class _AuthFormState extends State<_AuthForm> {
                     child: TextButton(
                       onPressed: loading
                           ? null
-                          : () => _navigate(AuthAction.resetPassword),
+                          : () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const AccountPage(),
+                              ),
+                            ),
                       child: const Text('Lupa password?'),
                     ),
                   ),
