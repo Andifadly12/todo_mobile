@@ -23,7 +23,14 @@ class TodoPageData {
 }
 
 abstract interface class TodoRepository {
-  Future<TodoPageData> list({required int page, String? status});
+  Future<TodoPageData> list({
+    required int page,
+    String? status,
+    String? search,
+    String? priority,
+    String? categoryId,
+    bool? completed,
+  });
   Future<Todo> get(String id);
   Future<void> save(Map<String, dynamic> fields, {String? id});
   Future<void> delete(String id);
