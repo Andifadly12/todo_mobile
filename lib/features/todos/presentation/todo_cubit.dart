@@ -22,8 +22,25 @@ class TodoState {
 class TodoCubit extends Cubit<TodoState> {
   TodoCubit(this.repository) : super(const TodoState());
   final TodoRepository repository;
+  String? search, priority, categoryId;
+  bool? completed;
+  Future<void> applyFilters({
+    String? search,
+    String? priority,
+    String? categoryId,
+    bool? completed,
+  }) async {
+    if (state.busy) return;
+    this.search = search;
+    this.priority = priority;
+    this.categoryId = categoryId;
+    this.completed = completed;
+    await load(status: completed == null ? state.status : null);
+  }
+
   Future<void> load({String? status, bool more = false}) async {
     if (state.busy) return;
+    if (status != null) completed = null;
     final old = state;
     final filter = more ? old.status : status;
     final page = more ? old.page + 1 : 1;
@@ -38,7 +55,14 @@ class TodoCubit extends Cubit<TodoState> {
       ),
     );
     try {
-      final result = await repository.list(page: page, status: filter);
+      final result = await repository.list(
+        page: page,
+        status: filter,
+        search: search,
+        priority: priority,
+        categoryId: categoryId,
+        completed: filter == null ? completed : null,
+      );
       if (!isClosed) {
         emit(
           TodoState(
