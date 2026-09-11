@@ -13,7 +13,14 @@ import 'package:todo_mobile/features/todos/presentation/widgets/todo_editor.dart
 class FakeTodos implements TodoRepository {
   bool fail = false;
   @override
-  Future<TodoPageData> list({required int page, String? status}) async =>
+  Future<TodoPageData> list({
+    required int page,
+    String? status,
+    String? search,
+    String? priority,
+    String? categoryId,
+    bool? completed,
+  }) async =>
       TodoPageData([Todo(id: '$page', title: 'Task $page')], 2, page == 1);
   @override
   Future<void> save(Map<String, dynamic> fields, {String? id}) async {
