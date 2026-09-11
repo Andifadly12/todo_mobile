@@ -20,11 +20,7 @@ class ApiTodoRepository implements TodoRepository {
   @override
   Future<TodoPageData> list({required int page, String? status}) async {
     final query = Uri(
-      queryParameters: {
-        'page': '$page',
-        'limit': '10',
-        'status': ?status,
-      },
+      queryParameters: {'page': '$page', 'limit': '10', 'status': ?status},
     ).query;
     final data = await api.request('GET', 'todos?$query');
     final rows = data['data'] as List;
